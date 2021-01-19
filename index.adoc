@@ -1,0 +1,174 @@
+= Documentation technique du projet _Référentiel de Mobilité Régional_
+Okina <contact@okina.fr>
+:revnumber: 1.0
+:revdate: 18.01.2021
+:revremark: Initialisation
+:sectnums:
+:toc: left
+:toclevels: 4
+:toc-title: Contenu
+
+:description: Documentation technique du projet RMR
+:keywords: RMR, Documentation technique, Nouvelle Aquitaine, Okina
+:imagesdir: ./img
+:icons: font
+
+== Introduction
+
+Ce document décrit le fonctionnement du projet _Référentiel de Mobilité Régional_ mis en place pour la Région Nouvelle Aquitaine.
+
+Les différentes applications disposent d'un fichier README.md à leur racine, décrivant comment les lancer et les points techniques spécifiques. Le but de ce document est d'offrir une vue d'ensemble sur le rôle de chaque application afin de pouvoir appréhender la pile technique.
+
+Dans le cadre du projet _RMR_, ces applications sont déployées sous la forme d'un cluster Docker Swarm composé de 3 machines.
+
+== Genèse du projet
+
+Depuis ses débuts, Okina construit des solutions logicielles en s'appuyant notamment sur le logiciel https://github.com/afimb/chouette[Chouette].
+Ce logiciel, à l'origine une commande de l'_Agence Française pour l'Information Multimodale et la Billettique_ (AFIMB), développé en Java, offre des tâches d'import / export / validation vers les principaux formats utilisés en France : http://www.normes-donnees-tc.org/category/neptune/[Neptune] et https://developers.google.com/transit/gtfs/reference?hl=fr[GTFS].
+
+Le projet _Rutebanken_ initié par le gouvernement norvégien en 2015, et mené par la société gouvernementale https://en.wikipedia.org/wiki/Entur[_Entur_], s'est appuyé sur le logiciel Chouette et les normes et formats d'échanges poussés par l'union européenne(http://www.normes-donnees-tc.org/page-d-exemple/modeles-de-donnees/transmodel/[Transmodel], http://netex-cen.eu/[NeTEx], http://www.normes-donnees-tc.org/category/siri/[Siri]) pour créer une solution permettant de stocker les données de transport public à grande échelle.
+Cette solution adresse notamment les problématiques de volumétrie de données et de la centralisation de la gestion d'une offre de transport provenant de différents SI.
+
+== Architecture générale
+
+image::architecture_general.png[Diagramme d'architecture général]
+
+NOTE: Les lettres dans les chapitres suivant référencent le schéma d'architecture ci-dessus.
+
+
+=== [A] Keycloak
+https://www.keycloak.org[Keycloak] est une application open source soutenue par la société RedHat permettant d'implémenter simplement des politiques de sécurité au sein d'une application. Nous déléguons à Keycloak la gestion de l'authentification et de la sécurité au sein des applications. Des librairies fournies par l'éditeur existent dans les langages utilisés (javascript, java).
+
+Keycloak est de plus capable de faire de la fédération d'identité, et donc éventuellement de communiquer avec d'autres applications du même type via des protocoles type SAML ou OpenID. Ceci ouvre la porte à une éventuelle intégration ultérieure en SSO des logiciels de l'application avec des logiciels issus d'autres systèmes d'information.
+
+=== [A] Kong
+https://konghq.com/kong[Kong] est une application open source de gestion d'API. Kong permet d'unifier les APIs provenant de multiples applications au sein d'une même application, et d'appliquer des politiques de sécurité ou de bridage sur ces APIs.
+C'est un moyen d'offrir une interface d'accès rationalisée aux APIs de l'application, le projet contenant des APIs provenant de multiples projets open source et donc aux interfaces hétéroclites.
+
+=== [A]Nginx
+https://www.nginx.com[Nginx] est le serveur web de référence. Dans le cadre du projet RMR, il sert de point d'entrée à l'application : toutes les requêtes web passent par ce serveur et sont ensuite distribuées aux applications composant la pile applicative. Plusieurs avantages pour ce procédé :
+* Gestion de la sécurité de l'infrastructure simplifiée : un seul port ouvert.
+* Gestion du reverse proxying au sein de la pile applicative : une fois un nom de domaine fourni, nous pouvons facilement créer des sous-urls et les associer à des applications.
+
+=== [A] Gestion des logs
+Cible : solution type ELK.
+A ce jour, les logs sont collectés via une solution système, non comprise dans la pile applicative.
+
+=== [B] Administration
+----
+ReactJS
+Spring Boot
+PostgreSQL
+----
+L'interface d'administration du projet se fait au travers d'une application ReactJS (https://github.com/okina-transport/ninkasi[_Ninkasi_].
+Cette application utilise les différentes APIs des backends disponibles pour permettre l'administration du projet.
+La gestion des différents producteurs de données est centralisée dans l'application dédiée https://github.com/okina-transport/baba[_Baba_]
+
+A travers cette interface il est possible de :
+
+* Gérer les producteurs de données et les droits associés.
+L'interface d'administration communique avec Keycloak, et offre une interface de saisie plus pratique qu'au sein de Keycloak.
+* Suivre l'avancement des imports / exports de données pour les différents producteurs de données, les tuer si nécessaires, ou bien les relancer.
+* Consulter des statistiques sur les données théoriques
+* Consulter la liste des fichiers exportés
+
+=== [C] Portail producteur
+----
+ReactJS
+Spring Boot
+PostgreSQL
+----
+L'application https://github.com/okina-transport/bel[_Bel_] est le point d'entrée pour un producteur de données souhaitant soumettre des données.
+A travers cette application, un producteur de données est capable de soumettre un fichier d'offre théorique et de suivre l'avancement de l'import.
+
+=== [D] Offre Commerciale
+----
+Ruby on Rails
+JEE
+PostgreSQL
+----
+L'application https://github.com/okina-transport/chouette[_Chouette IEV_] (pour _Import, Export, Validation_), est une application JEE exposée sous la forme d'une API, et devant être déployée sur un serveur wildfly 8.
+Grâce à cette API il est possible de soumettre des _jobs_ d'import, export, ou validation dans différents formats et de suivre leur avancement. L'application stocke les données au format Transmodel dans une base Postgres.
+
+L'application https://github.com/okina-transport/chouette2[_Chouette 2_] offre une interface permettant de visualiser les données stockées dans la base de données et de les manipuler.
+
+=== [E] Gestion des points d'arrêts
+----
+ReactJS
+Spring Boot
+PostgreSQL
+----
+Les applications https://github.com/okina-transport/tiamat[_Tiamat_] (backend) et https://github.com/okina-transport/abzu[_Abzu_] (frontend) sont dédiées à la gestion de points d'arrêts et permettent :
+
+* De créer des nouveaux points d'arrêts,
+* De supprimer des points d'arrêts,
+* De modifier des points d'arrêts existants.
+
+Les points d'arrêts peuvent être créés au sein de l'application dédiée, mais sont également collectés depuis l'application Chouette lors des imports de données.
+L'application dédoublonne automatiquement les points d'arrêts provenant de systèmes informatiques différents en fonction de critères métiers (nom des points d'arrêt, coordonnées GPS, proximité avec d'autres points).
+L'application _Tiamat_ est également en charge de la production des exports Netex de la base d'arrêts.
+
+=== [F] Offre TAD Zonal
+----
+ReactJS
+Spring Boot
+PostgreSQL
+----
+L'offre de transport à la demande Zonale est déportée dans deux applications dédiées : https://github.com/okina-transport/flexible-transport[_Enki_] (frontend) et https://github.com/okina-transport/uttu[_Uttu_] (backend).
+_Uttu_ est responsable de la production de l'offre de TAD zonale au format Netex.
+L'offre TAD en ligne virtuelle se rapporoche d'une offre de transport plus classique et est à ce jour gérée dans _Chouette_.
+
+=== [G] Processus métiers
+----
+Spring Boot
+PostgreSQL
+Camel - ActiveMQ
+----
+L'application https://github.com/okina-transport/marduk[_Marduk_] est responsable des processus métiers d'import / export notamment.
+L'utilisation de JMS au travers d'ActiveMQ et Apache Camel permet d'offrir la résilience nécessaire à l'application, ainsi que la maintenabilité des workflows applicatifs (décrits au travers de composants Camel).
+
+L'application https://github.com/okina-transport/kakka[_Kakka_] gère la production d'exports réguliers de la base de points d'arrêts, en invoquant l'API de _Tiamat_.
+
+L'application https://github.com/okina-transport/nabu[_Nabu_] est chargée de collecter les évènements liés aux imports / exports, et offre une API permettant de récupérer ces évènements.
+
+L'application https://github.com/okina-transport/irkalla[_Irkalla_] vérifie l'état de la synchronisation de la base de points d'arrêts entre _Chouette_ et _Tiamat_, et la met à jour si nécessaire.
+
+== Autres composants du projet
+
+Divers autres composants de moindre importance, ou n'ayant nécessité pas ou peu d'évolutions sont listés ci-dessous.
+
+https://github.com/okina-transport/bogu[_Bogu_] Contient des composants ReactJS utilisés dans plus d'une application.
+
+https://github.com/okina-transport/netex-java-model[Netex-java-model] Permet de générer un jar contenant le modèle Netex en Java d'après une XSD.
+
+https://github.com/okina-transport/chouette2-i18n[Chouette2-i18n] et https://github.com/okina-transport/chouette-projects-i18n[Chouette-projects-i18n] contiennent les libellés de l'application Chouette2.
+
+== Export des données
+
+Les données sont exportées sur Google Cloud Storage afin d'être réutilisées notamment sur https://modalis.fr/[le calculateur multimodal Modalis].
+Toutes les nuits, un export complet Netex de l'offre de transport ainsi que des points d'arrêts est poussée sur GCS. Les données sont également poussées filtrées par producteur de données.
+
+== Modèle de données
+
+Les données d'offre de transport importées ou saisies dans l'application sont stockées par Chouette au format Transmodel.
+Concernant la gestion des producteurs de données, nous avons repris le modèlé mis en place par Entur sur Rutebanken. Les données
+
+image::model_organisation.png[Diagramme du modèle de données "Organisation"]
+
+Une organisation est une entité pouvant produire ou gérer des données de transport, et devant donc interagir d'une manière ou d'une autre avec le RMR.
+Deux types d'organisation cohabitent :
+
+* Les autorités organisatrices de transport (_Authority_) : c'est une entité chargée de fournir une offre de transport public
+* Les opérateurs (_Operator_) : c'est une société responsable de l'exploitation de tout ou partie de l'offre de transport public. Les opérateurs agissent la plupart du temps sous contrat d'une autorité organisatrice de transport.
+
+Dans le système, chaque organisation se verra attribuer un _Codespace_. Le _Codespace_ (assimilable à la notion de _namespace_ dans le monde XML) est une URL terminée par un code à 3 lettres qui permettra d'assurer l'unicité des données dans le système.
+
+.Exemple de Codespace
+[source, xml]
+----
+<Codespace>
+    <Xmlns>BME</Xmlns>
+    <XmlnsUrl>http://rmr.nouvelle-aquitaine.pro/bme</XmlnsUrl>
+    <Description>Bordeaux Métropole</Description>
+</Codespace>
+----
