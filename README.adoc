@@ -13,6 +13,8 @@ Okina <contact@okina.fr>
 :imagesdir: ./img
 :icons: font
 
+icon:download[] Télécharger
+
 == Introduction
 
 Ce document décrit le fonctionnement du projet _Référentiel de Mobilité Régional_ mis en place pour la Région Nouvelle Aquitaine.
@@ -45,7 +47,7 @@ Keycloak est de plus capable de faire de la fédération d'identité, et donc é
 https://konghq.com/kong[Kong] est une application open source de gestion d'API. Kong permet d'unifier les APIs provenant de multiples applications au sein d'une même application, et d'appliquer des politiques de sécurité ou de bridage sur ces APIs.
 C'est un moyen d'offrir une interface d'accès rationalisée aux APIs de l'application, le projet contenant des APIs provenant de multiples projets open source et donc aux interfaces hétéroclites.
 
-=== [A]Nginx
+=== [A] Nginx
 https://www.nginx.com[Nginx] est le serveur web de référence. Dans le cadre du projet RMR, il sert de point d'entrée à l'application : toutes les requêtes web passent par ce serveur et sont ensuite distribuées aux applications composant la pile applicative. Plusieurs avantages pour ce procédé :
 * Gestion de la sécurité de l'infrastructure simplifiée : un seul port ouvert.
 * Gestion du reverse proxying au sein de la pile applicative : une fois un nom de domaine fourni, nous pouvons facilement créer des sous-urls et les associer à des applications.
@@ -81,6 +83,8 @@ PostgreSQL
 L'application https://github.com/okina-transport/bel[_Bel_] est le point d'entrée pour un producteur de données souhaitant soumettre des données.
 A travers cette application, un producteur de données est capable de soumettre un fichier d'offre théorique et de suivre l'avancement de l'import.
 
+L'utilisateur peut également avoir une vue synthétique des informations présentes dans le système, avec notamment les données expirant prochainement.
+
 === [D] Offre Commerciale
 ----
 Ruby on Rails
@@ -102,7 +106,8 @@ Les applications https://github.com/okina-transport/tiamat[_Tiamat_] (backend) e
 
 * De créer des nouveaux points d'arrêts,
 * De supprimer des points d'arrêts,
-* De modifier des points d'arrêts existants.
+* De modifier des points d'arrêts existants,
+* D'exporter les données des points d'arrêts au format CSV suivant les filtres voulus.
 
 Les points d'arrêts peuvent être créés au sein de l'application dédiée, mais sont également collectés depuis l'application Chouette lors des imports de données.
 L'application dédoublonne automatiquement les points d'arrêts provenant de systèmes informatiques différents en fonction de critères métiers (nom des points d'arrêt, coordonnées GPS, proximité avec d'autres points).
@@ -251,3 +256,7 @@ Dans le système, chaque organisation se verra attribuer un _Codespace_. Le _Cod
 |https://github.com/okina-transport/chouette-projects-i18n
 
 |===
+
+== Liens
+
+Plus d'information
