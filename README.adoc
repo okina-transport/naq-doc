@@ -47,6 +47,7 @@ C'est un moyen d'offrir une interface d'accès rationalisée aux APIs de l'appli
 
 === [A] Nginx
 https://www.nginx.com[Nginx] est le serveur web de référence. Dans le cadre du projet RMR, il sert de point d'entrée à l'application : toutes les requêtes web passent par ce serveur et sont ensuite distribuées aux applications composant la pile applicative. Plusieurs avantages pour ce procédé :
+
 * Gestion de la sécurité de l'infrastructure simplifiée : un seul port ouvert.
 * Gestion du reverse proxying au sein de la pile applicative : une fois un nom de domaine fourni, nous pouvons facilement créer des sous-urls et les associer à des applications.
 
