@@ -33,7 +33,7 @@ Cette solution adresse notamment les problématiques de volumétrie de données 
 
 image::architecture_general.png[Diagramme d'architecture général]
 
-NOTE: Les lettres dans les chapitres suivant référencent le schéma d'architecture ci-dessus.
+NOTE: Les lettres dans les chapitres suivants référencent le schéma d'architecture ci-dessus.
 
 
 === [A] Keycloak
