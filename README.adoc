@@ -13,8 +13,6 @@ Okina <contact@okina.fr>
 :imagesdir: ./img
 :icons: font
 
-icon:download[] Télécharger
-
 == Introduction
 
 Ce document décrit le fonctionnement du projet _Référentiel de Mobilité Régional_ mis en place pour la Région Nouvelle Aquitaine.
