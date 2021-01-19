@@ -258,4 +258,4 @@ Dans le système, chaque organisation se verra attribuer un _Codespace_. Le _Cod
 
 == Liens
 
-Plus d'information
+Plus d'information concernant le modèle de données Netex associé à NeTEx est disponible https://enturas.atlassian.net/wiki/spaces/PUBLIC/pages/728662188/Profile+documents[sur le site d'Entur]
