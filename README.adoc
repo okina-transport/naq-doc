@@ -172,3 +172,82 @@ Dans le système, chaque organisation se verra attribuer un _Codespace_. Le _Cod
     <Description>Bordeaux Métropole</Description>
 </Codespace>
 ----
+
+== Liste des dépots utilisés
+
+|===
+|Composant |Rôle |URL de la branche de dev
+
+|Cette documentation
+|Documentation
+|https://github.com/okina-transport/naq-doc
+
+|Chouette
+|Import / export / validation offre
+|https://github.com/okina-transport/chouette/tree/okina_develop_NA
+
+|Marduk
+|Orchestrateur
+|https://github.com/okina-transport/marduk/tree/naq_develop
+
+|Uttu
+|Backend Zonal
+|https://github.com/okina-transport/uttu/tree/first_okina_version
+
+|Enki
+|Frontend Zonal
+|https://github.com/okina-transport/flexible-transport/tree/naq_develop
+
+|Tiamat
+|Backend Arrêts
+|https://github.com/okina-transport/tiamat/tree/naq_develop
+
+|Abzu
+|Frontend Arrêts
+|https://github.com/okina-transport/abzu/tree/naq_develop
+
+|Baba
+|Backend Organisations
+|https://github.com/okina-transport/baba
+
+|Chouette2
+|Frontend offre
+|https://github.com/okina-transport/chouette2/tree/okina_develop
+
+|Ninkasi
+|Frontend Organisations / admin
+|https://github.com/okina-transport/ninkasi/tree/develop
+
+|Nabu
+|Backend job status
+|https://github.com/okina-transport/nabu/tree/development
+
+|Kakka
+|Scheduler export Arrêts
+|https://github.com/okina-transport/kakka
+
+|Bogu
+|Composants ReactJS communs
+|https://github.com/okina-transport/bogu/tree/development
+
+|Netex-java-model
+|Générateur modèle Netex en Java
+|https://github.com/okina-transport/netex-java-model
+
+|Bel
+|Frontend portail producteurs
+|https://github.com/okina-transport/bel/tree/development
+
+|Irkalla
+|Synchronisation Tiamat / Chouette
+|https://github.com/okina-transport/irkalla/tree/naq_develop
+
+|Chouette2-i18n
+|Traductions Chouette2
+|https://github.com/okina-transport/chouette2-i18n
+
+|Chouette-projects-i18n
+|Traductions Chouette2
+|https://github.com/okina-transport/chouette-projects-i18n
+
+|===
