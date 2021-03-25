@@ -1,8 +1,8 @@
 = Documentation technique du projet _Référentiel de Mobilité Régional_
 Okina <contact@okina.fr>
-:revnumber: 1.0
-:revdate: 18.01.2021
-:revremark: Initialisation
+:revnumber: 1.1
+:revdate: 25.03.2021
+:revremark: Précisions architecture technique
 :sectnums:
 :toc: left
 :toclevels: 4
@@ -16,10 +16,10 @@ Okina <contact@okina.fr>
 == Introduction
 
 Ce document décrit le fonctionnement du projet _Référentiel de Mobilité Régional_ mis en place pour la Région Nouvelle Aquitaine.
+Il fait office de point d'entrée pour la documentation technique.
 
-Les différentes applications disposent d'un fichier README.md à leur racine, décrivant comment les lancer et les points techniques spécifiques. Le but de ce document est d'offrir une vue d'ensemble sur le rôle de chaque application afin de pouvoir appréhender la pile technique.
-
-Dans le cadre du projet _RMR_, ces applications sont déployées sous la forme d'un cluster Docker Swarm composé de 3 machines.
+Les différentes applications disposent d'un fichier README.md à leur racine, décrivant comment les lancer et les points techniques spécifiques.
+Le but de ce document est d'offrir une vue d'ensemble sur le rôle de chaque application afin de pouvoir appréhender la pile technique. Il fait également office de dossier d'architecture technique en présentant les objectifs du projet, et les moyens matériels nécessaaires pour les atteindre.
 
 == Genèse du projet
 
@@ -52,8 +52,8 @@ https://www.nginx.com[Nginx] est le serveur web de référence. Dans le cadre du
 * Gestion du reverse proxying au sein de la pile applicative : une fois un nom de domaine fourni, nous pouvons facilement créer des sous-urls et les associer à des applications.
 
 === [A] Gestion des logs
-Cible : solution type ELK.
-A ce jour, les logs sont collectés via une solution système, non comprise dans la pile applicative.
+Cible : solution avec indexage, recherche et webapp de consultation type ELK.
+A ce jour, les logs sont collectés et routés vers des fichiers sur le système de fichier via logspout.
 
 === [B] Administration
 ----
@@ -177,10 +177,75 @@ Dans le système, chaque organisation se verra attribuer un _Codespace_. Le _Cod
 </Codespace>
 ----
 
+== Architecture technique
+
+Le déploiement sous forme d'un cluster Docker Swarm est préconisé : il permet aussi bien le déploiement sur une architecture _on premise_ que du _cloud_, et offre la résilience nécessaire à ce type de projet.
+
+Le projet est actuellement déployé en production sur un cluster de VMs hébergées chez un hébergeur cloud français.
+
+=== Contraintes matérielles de déploiement
+
+Le projet, déployé dans un cluster Swarm, devra respecter a minima les contraintes d'infrastructure suivantes :
+
+* 3 noeuds afin d'atteindre le quorum nécessaire à Swarm pour provoquer une réélection en cas de défaillance du noeud leader
+* Deux noeuds comportant au minimum 8G de RAM, et un noeud comportant au minimum 16G de RAM
+* Les machines devront être équipées a minima de processeurs quad core 3.7Gh
+* 60G d'espace disque par noeud, pour le stockage des images Docker et des logs notamment. Un soin particulier est apporté à créer les images les plus petites possibles, mais nous dépendons parfois d'images tierces volumineuses au départ.
+* Un espace de données accessible par les 3 noeuds d'au moins 20G, permettant de stocker les fichiers de configuration, ainsi que les données applicatives (pour une intégration de fichier par exemple, qui pourra nécessiter de lire / écrire des fichiers).
+
+L'utilisation de ces capacités machine est ponctuelle, et principalement liée à l'intégration des fichiers de données d'offre théorique.
+L'intégration des fichiers nécessite :
+
+* De mettre l'offre en mémoire pour pouvoir effectuer rapidement les vérifications nécessaires (d'où la RAM nécessaire)
+* Des capacités CPU importantes pour le traitement des gros fichiers de données.
+
+=== Base de données
+
+La base de données est actuellement hébergée en production sur un des 3 noeuds composant le cluster Swarm.
+Chaque application back possède sa base de données. Elles sont listées ci-dessous, avec leur taille après 3 ans d'utilisation :
+
+[cols="^,>", options="header"]
+|===
+|Application ^| Taille de la base de données en Mb
+|keycloak    >| 14
+|kong        >| 8
+|nabu        >| 158
+|baba        >| 20
+|kakka       >| 19
+|tiamat      >| 1944
+|uttu        >| 20
+|marduk      >| 20
+|chouette    >| 7926
+|iev         >| 123
+|===
+
+=== Données Cloud
+
+L'application stocke les données exportées sur Google Cloud Storage.
+Le bucket GCS compte actuellement environ 50G de données historisées après 3 ans d'utilisation.
+
+=== Sauvegarde / Restauration
+
+Les machines virtuelles sont sauvegardées toutes les nuits, permettant de restaurer tout ou partie du système très rapidement et avec moins de 24h00 de perte de données en cas de problème.
+De plus, un dump des base de données est également sauvegardé toutes les nuits.
+
+=== Déploiement de l'application
+
+Les applications sont déployées sous la forme d'images Docker.
+L'image peut être construite de deux manières :
+
+* via une commande Maven inviquant un goal SpringBoot permettant de construire l'image docker dans le cas des projets SpringBoot
+
+* via un Dockerfile et un script "build.sh" présent dans le projet et construisant l'image Docker pour les autres projets.
+
+Le déploiement de la stack docker se fait à l'aide d'un script shell. Le script est chargé d'injecter dans le fichier docker-compose.yml et les différents fichiers properties les valeurs spécifiques à un environnement, puis de lancer le déploiement de la stack.
+
+Les scripts sont en gestion de configuration, dans un projet dédié. Le projet sera partagé lors de la phase de réversibilité du projet.
+
 == Liste des dépots utilisés
 
 |===
-|Composant |Rôle |URL de la branche de dev
+^|Composant ^|Rôle ^|URL de la branche de dev
 
 |Cette documentation
 |Documentation
